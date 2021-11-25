@@ -1,0 +1,35 @@
+pipeline {
+agent any
+
+stages {
+
+    stage('Cluster creation') {
+       steps {
+          
+          sh 'gcloud container clusters create sample-cluster --zone us-west2-b --release-channel=stable --enable-autoupgrade --enable-autorepair --quiet'
+          sh 'kubectl get nodes -o wide'
+          
+       }
+   }
+    stage('create POD') {
+       steps {
+            
+          sh 'kubectl run nginx --image=nginx --restart=Never'
+          sh 'sleep 10'
+          sh 'kubectl get pods -o wide'
+          sh 'kubectl describe pod nginx'
+            
+        }
+    }
+    
+    stage('Cleanup') {
+        steps {
+            
+         sh 'kubectl delete pod nginx'
+          sh 'kubectl get pods'
+         
+		  sh 'gcloud container clusters delete sample-cluster --zone us-west2-b --quiet'
+            
+        }
+    }
+}
